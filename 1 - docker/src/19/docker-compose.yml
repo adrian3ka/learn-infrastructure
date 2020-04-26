@@ -1,0 +1,37 @@
+version: "3.7"
+
+services:
+  mongo-compose:
+    container_name: mongo-compose
+    image: mongo:4-xenial
+    ports:
+      - 27017:27017
+    networks:
+      - application-network
+  redis-compose:
+    container_name: redis-compose
+    image: redis:5
+    ports:
+      - 6380:6379
+    networks:
+      - application-network
+  app-docker-network-container-compose:
+    container_name: app-docker-network-container-compose
+    image: app-docker-network:1.0
+    ports:
+      - 9090:9090
+    depends_on:
+      - redis-compose
+      - mongo-compose
+    environment:
+      - NAME=Docker
+      - MONGO_HOST=mongo-compose
+      - MONGO_PORT=27017
+      - REDIS_HOST=redis-compose
+      - REDIS_PORT=6379
+      - APP_PORT=9090
+    networks:
+      - application-network
+networks:
+   application-network:
+      name: application-network
