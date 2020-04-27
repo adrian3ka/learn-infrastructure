@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nginx-with-annotations
+  name: nginx-with-failure_probe
   labels:
     team: finance
     version: 1.4.5
