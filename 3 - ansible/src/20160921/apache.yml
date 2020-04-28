@@ -1,0 +1,20 @@
+---
+- hosts: appgroup
+  user: ansadm
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: 1. Install Latest Version HTTP/Apache RPMs
+    apt: name=apache2 state=present
+
+  - name: 2. Stop the nginx we already installed
+    service: name=nginx state=stopped
+
+  - name: 3. Start apache service
+    service: name=apache2 state=started enabled=yes
+
+  - name: 4. Copy the Standard index.html file
+    copy: src=/tmp/index.html dest=/var/www/html/index.html mode=0664
+
+  - name: 5. Add apache iptable rule
+    command: ufw allow 80/tcp
