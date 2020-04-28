@@ -91,3 +91,90 @@ pastikan berhasil
 ===============================================================================
 
 sudo chown -R ansadm:ansadm /etc/ansible
+
+===============================================================================
+Video 3
+===============================================================================
+vim /etc/ansible/hosts
+
+tambahkan entry
+
+[appgroup]
+appserver
+
+[dbgroup]
+dbserver
+
+-------------------------------------------------------------------------------
+ansible module : ansible berbasis module, maksudnya ansible bisa mengontrol
+aplikasi apa saja pada remote server selama modulenya tersedia.
+
+ansible-doc -l | more
+
+ansible-doc -l | wc -l
+
+ansible-doc -s [module name]
+-------------------------------------------------------------------------------
+
+masuk sebagai ansadm : su - ansadm
+
+ansible appgroup -m ping
+
+ansible all -m ping
+
+ansible appgroup -m ping -o
+
+Note : 
+ - -m untuk menunjukkan module
+ - -a untuk arguments
+ - -o untuk one line output
+
+untuk lebih lengkap bisa menggunakan ansible -h untuk help
+
+ansible all -m shell -a "uname -a; df -h"
+
+ansible all -m shell -a "uname -a; df -h" -v
+--------------------------------------------------------------------------------
+Mari kita mencoba install git pada appserver
+
+1. Tambahkan ansadm user sebagai root user pada appserver 
+   
+   sudo vi /etc/sudoers
+
+   ## ANSIBLE ADMIN USER
+   ansadm ALL=NOPASSWD: ALL
+
+   Optional : check pada server appserver apakah sudah memiliki git, maka hapus terlebih dahulu
+              dengan menggunakan command 'sudo apt remove git' dan pastikan sudah tidak ada git
+              pada appserver
+
+2. Jalankan command 
+   ansible appgroup -m apt -a "name=git state=present" -b <--- untuk menggunakan sudo pada client system
+
+   Note: pada video tutorial menggunakan -s, tapi karena beda versi ini menggunakan -b
+-----------------------------------------------------------------------------------
+Menginstall nginx
+
+pada ansible-control server jalankan
+
+ansible appgroup -m apt -a "update_cache=true" -b
+ansible appgroup -m apt -a "name=nginx state=present" -b
+
+kemudian check di appserver service nginx status, maka statusnya akan aktif maka coba kita matikan nginxnya
+
+ansible appgroup -m service -a "name=nginx state=stopped" -b
+
+dan jika di cek di appserver maka status dari nginx akan mati. Selanjutnya mari kita nyalakan lagi dan cek kembali
+
+ansible appgroup -m service -a "name=nginx state=started" -b
+
+====================================================================================
+ANSIBLE COPY MODULES
+====================================================================================
+sebelumnya pada dbserver tambahkan ansadm sebagai sudoers dengan menggunakan cara yang tadi
+
+pada ansible-control server lakukan 
+
+echo "test from ansadm" > /tmp/testingfile
+
+ansible all -m copy -a "src=/tmp/testingfile dest=/tmp/testingfile" -b
