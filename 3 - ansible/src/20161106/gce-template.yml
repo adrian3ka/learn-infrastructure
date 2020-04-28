@@ -1,0 +1,18 @@
+---
+# Example Playbook
+# Run with ansible-playbook gce.yml
+- name: Compute Engine Instance Examples
+  hosts: localhost
+  tasks:
+  - name: Creating Instance For GCE
+    gce:
+      instance_names: my-test-instance1
+      zone: us-central1-a
+      machine_type: n1-standard-1
+      image: debian-8
+      state: present
+      service_account_email: "your-sa@your-project-name.iam.gserviceaccount.com"
+      credentials_file: "/path/to/your-key.json"
+      project_id: "your-project-name"
+      disk_size: 32
+

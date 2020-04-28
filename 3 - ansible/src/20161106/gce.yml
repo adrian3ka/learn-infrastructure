@@ -1,0 +1,17 @@
+---
+# Example Playbook
+- name: Compute Engine Instance Examples
+  hosts: localhost
+  tasks:
+  - name: Creating Instance For GCE
+    gce:
+      instance_names: my-test-instance1
+      zone: us-central1-a
+      machine_type: n1-standard-1
+      image: debian-8
+      state: present
+      service_account_email: "beam-tutorial-272917@appspot.gserviceaccount.com"
+      credentials_file: "./key.json"
+      project_id: "beam-tutorial-272917"
+      disk_size: 32
+
