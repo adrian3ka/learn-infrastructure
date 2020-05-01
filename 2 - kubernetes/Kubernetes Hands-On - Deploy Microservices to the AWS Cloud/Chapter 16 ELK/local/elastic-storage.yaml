@@ -1,0 +1,61 @@
+# What do want?
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # format that expected from elastic search docker by default
+  name: elasticsearch-logging-elasticsearch-logging-0
+  namespace: kube-system
+spec:
+  storageClassName: my-elastic-localstorage-0
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 31Gi
+---
+# How do we want it implemented
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elastic-local-storage-0
+  namespace: kube-system
+spec:
+  storageClassName: my-elastic-localstorage-0
+  capacity:
+    storage: 31Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/some elastic/directory/structure/"
+    type: DirectoryOrCreate
+---
+# What do want?
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # format that expected from elastic search docker by default
+  name: elasticsearch-logging-elasticsearch-logging-1
+  namespace: kube-system
+spec:
+  storageClassName: my-elastic-localstorage-1
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 31Gi
+---
+# How do we want it implemented
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elastic-local-storage-1
+  namespace: kube-system
+spec:
+  storageClassName: my-elastic-localstorage-1
+  capacity:
+    storage: 31Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/some elastic-1/directory/structure/"
+    type: DirectoryOrCreate
