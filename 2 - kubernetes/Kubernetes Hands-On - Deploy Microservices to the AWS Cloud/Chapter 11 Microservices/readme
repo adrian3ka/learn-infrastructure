@@ -1,0 +1,2 @@
+If your minikube getting stucks delete the minikube first
+and then upgrade the memory to 4096

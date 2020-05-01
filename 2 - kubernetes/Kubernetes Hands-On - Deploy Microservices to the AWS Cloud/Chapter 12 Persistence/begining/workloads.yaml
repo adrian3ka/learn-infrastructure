@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,11 +15,7 @@ spec:
     spec:
       containers:
       - name: queue
-        image: richardchesterwood/k8s-fleetman-queue:release1
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
+        image: richardchesterwood/k8s-fleetman-queue:release2
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,14 +33,10 @@ spec:
     spec:
       containers:
       - name: position-simulator
-        image: richardchesterwood/k8s-fleetman-position-simulator:release1
+        image: richardchesterwood/k8s-fleetman-position-simulator:release2
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: production-microservice
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
 
 ---
 apiVersion: apps/v1
@@ -62,14 +55,10 @@ spec:
     spec:
       containers:
       - name: position-tracker
-        image: richardchesterwood/k8s-fleetman-position-tracker:release1
+        image: richardchesterwood/k8s-fleetman-position-tracker:release2
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: production-microservice
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -87,14 +76,10 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: richardchesterwood/k8s-fleetman-api-gateway:release1
+        image: richardchesterwood/k8s-fleetman-api-gateway:release2
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: production-microservice
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
 
 ---
 apiVersion: apps/v1
@@ -113,11 +98,7 @@ spec:
     spec:
       containers:
       - name: webapp
-        image: richardchesterwood/k8s-fleetman-webapp-angular:release1
+        image: richardchesterwood/k8s-fleetman-webapp-angular:release2
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: production-microservice
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
