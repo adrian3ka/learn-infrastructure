@@ -1,0 +1,42 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2020-05-01T18:26:04Z"
+  labels:
+    operated-alertmanager: "true"
+  name: alertmanager-operated-local
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: Alertmanager
+    name: monitoring-prometheus-oper-alertmanager
+    uid: a29cfa6b-2959-40b8-b478-90b0e272b50d
+  resourceVersion: "64968"
+  selfLink: /api/v1/namespaces/monitoring/services/alertmanager-operated
+  uid: 9590f0e9-9fd0-4c06-8886-d3af493376ed
+spec:
+  ports:
+  - name: web
+    port: 9093
+    protocol: TCP
+    targetPort: web
+    nodePort: 30444
+  - name: tcp-mesh
+    port: 9094
+    protocol: TCP
+    targetPort: 9094
+  - name: udp-mesh
+    port: 9094
+    protocol: UDP
+    targetPort: 9094
+  selector:
+    app: alertmanager
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+

@@ -1,0 +1,12 @@
+if you face problem permission denied for executing 
+
+kubectl config set-cluster minikube --server=https://192.168.99.100:8443
+
+you can create the user with directory with
+
+useradd -m francis-linux-login-name
+
+-------------------------------------------------------------
+you can locate the certs on minikube on
+
+kube-controller-manager-minikube pods on the folder /etc/ssl/certs
