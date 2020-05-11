@@ -1,0 +1,22 @@
+You can use docker, preferably use docker on kubernetes
+
+docker pull vault:1.4.1
+
+sudo docker create vault:1.4.1
+
+sudo docker run -p 30303:8200 vault:1.4.1
+
+sudo docker exec -it [container id] sh
+
+----------------------------------------------------------------------------------
+or use kuberenetes with the folder that already provided
+==================================================================================
+
+and export the 
+
+export VAULT_ADDR=http://localhost:8200
+export VAULT_DEV_ROOT_TOKEN_ID="s.kNnuhpHLnA5AgelN5p1j3euX" <-- based on output from vault server -dev
+
+you can verify your server running fine by vault status -address=$VAULT_ADDR
+----------------------------------------------------------------------------------
+https://learn.hashicorp.com/vault/getting-started-k8s/minikube
