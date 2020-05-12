@@ -1,0 +1,37 @@
+Use the setting up vault on kubernetes from chapter 1
+
+// Setup Postgres
+kubectl apply -f postgres.yml 
+
+// Already setup from chapter 1
+echo $VAULT_TOKEN
+
+kubectl exec -it vault-0 sh
+
+vault login [copy from vault token]
+
+vault secrets enable database
+
+vault write database/config/my-postgresql-database \
+    plugin_name=postgresql-database-plugin \
+    allowed_roles="my-role" \
+    connection_url="postgresql://{{username}}:{{password}}@vault-postgres-service:5432/?sslmode=disable" \
+    username="postgres" \
+    password="password"
+
+vault write database/roles/my-role \
+    db_name=my-postgresql-database \
+    creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
+        GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
+    default_ttl="3m" \
+    max_ttl="24h"
+
+vault read database/creds/my-role
+
+-----------------------------------------------------------------------------------
+this is just an example, use other than root token for production, cert or any other method
+-----------------------------------------------------------------------------------
+exit #exit from kube pods
+
+curl 'http://192.168.99.100:30333/v1/database/creds/my-role' -H 'X-Vault-Token: s.vv5s9VeHM1TJ6mlNzAmH49Cg' | jq
+-----------------------------------------------------------------------------------

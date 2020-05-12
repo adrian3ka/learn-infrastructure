@@ -20,3 +20,32 @@ export VAULT_DEV_ROOT_TOKEN_ID="s.kNnuhpHLnA5AgelN5p1j3euX" <-- based on output 
 you can verify your server running fine by vault status -address=$VAULT_ADDR
 ----------------------------------------------------------------------------------
 https://learn.hashicorp.com/vault/getting-started-k8s/minikube
+
+
+----------------------------------------------------------------------------------
+IMPORTANT COMMAND
+----------------------------------------------------------------------------------
+// Enabling vault UI
+kubectl apply -f service.yml
+
+cd vault-guides/operations/provision-vault/kubernetes/minikube/getting-started
+
+helm install consul \
+    --values helm-consul-values.yml \
+    https://github.com/hashicorp/consul-helm/archive/v0.18.0.tar.gz
+
+helm install vault \
+    --values helm-vault-values.yml \
+    https://github.com/hashicorp/vault-helm/archive/v0.4.0.tar.gz
+
+kubectl exec vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > cluster-keys.json
+
+VAULT_UNSEAL_KEY=$(cat cluster-keys.json | jq -r ".unseal_keys_b64[]")
+
+// Export for later use in chapter 3
+VAULT_TOKEN=$(cat cluster-keys.json | jq -r ".root_token")
+
+
+kubectl exec vault-0 -- vault operator unseal $VAULT_UNSEAL_KEY
+kubectl exec vault-1 -- vault operator unseal $VAULT_UNSEAL_KEY
+kubectl exec vault-2 -- vault operator unseal $VAULT_UNSEAL_KEY

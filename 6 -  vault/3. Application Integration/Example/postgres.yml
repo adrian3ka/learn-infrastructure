@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-postgres
+  template:
+    metadata:
+      labels:
+        app: vault-postgres
+    spec:
+      containers:
+      - name: app
+        image: postgres:9.6.17-alpine
+        imagePullPolicy: Always
+        env:
+          - name: POSTGRES_PASSWORD
+            value: password
+          - name: POSTGRES_USER
+            value: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-postgres-service
+  namespace: default
+spec:
+  ports:
+  - name: tcp
+    nodePort: 30432
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: vault-postgres
+  type: NodePort
+
