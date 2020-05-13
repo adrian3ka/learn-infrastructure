@@ -1,0 +1,151 @@
+
+Our goal is to save sensitive data in a MySQL database in a responsible way, and be able to read/write it programmatically in a PHP web application. Asymmetric encryption would be best, but is not practical here. Symmetric encryption with a strong algorithm and hard-to-guess cipher is acceptable, but not if we store the cipher in plain text on the same server where the database credentials also live in plain text!
+
+This work-in-progress is subject to change if/when I come up with a better scheme, but for now, the plan is to:
+
+* store the cipher as a [vault](https://vaultproject.io) secret; 
+* configure TLS authentication so that our PHP application can log in, and then 
+* create a token that allows its bearer to read the secret (our cipher); 
+* use a [PHP component](https://docs.zendframework.com/zend-crypt/) and our cipher to encrypt/decrypt our sensitive data.
+    
+With judicious use of the audit log (e.g., watch its every change with something like [inotify-tools](https://github.com/rvoicilas/inotify-tools/wiki)) it should be possible to make sure Vault is only divulging things as we intend.
+
+Note:  this is most certainly no substitute for reading the docs. It's intended, among other things, as a memory aide for my aging brain.
+
+## prerequisites
+
+Install, intialize, unseal vault, have your root token in hand. My recommendation is to get your TLS enabled now, even in development, because if you're not already proficient with all that (I'm not very), it's time to start learning to deal with TLS certificates and all the accompanying acronym soup.
+
+Again, we want to store in Vault a cipher (i.e., a string) that we can pull out and use in our application for symmetrical encryption/decryption. Assume this cipher is saved to the path `secret/data/cipher`.
+
+## write policies
+
+### create read-secret.hcl
+
+```
+path "secret/data/cipher" {
+  policy = "read"
+}
+```
+
+### create create-token.hcl
+
+```
+path "auth/token/create/read-secret" {
+	policy = "write"
+
+}
+```
+### store policies in vault
+
+logged in as root (or close enough), write the policies
+
+``vault policy write read-secret read-secret.hcl``
+
+``vault policy write create-token create-token.hcl``
+
+### create a named token role... thingy
+
+``vault write auth/token/roles/read-secret allowed_policies=read-secret``
+
+_Note to self: find out how to enforce better security on the token/roles thing, i.e., require response-wrapping, a short TTL and modest number of uses (e.g., 2 or 3)._
+
+## configure [auth/cert backend](https://www.vaultproject.io/docs/auth/cert.html)
+
+The `cert` authentication backend has to be enabled (thanks to [saurabhweb](https://github.com/saurabhweb) for reminding us):
+
+``vault auth enable cert``
+
+Prerequisites include obtaining or [creating the certificates](https://jamielinux.com/docs/openssl-certificate-authority/). If you're unfamiliar with this, it will keep you busy for a while, so clear your schedule.
+
+With your certificates ready to go, 
+
+```
+vault write auth/cert/certs/web display_name=web policies=create-token \
+	certificate=@/path/to/your/cert.pem 
+```
+Now we have a user (in a manner of speaking) who can log in and create authentication tokens with which the bearer can read the secret. 
+
+## authenticate via TLS
+
+Let's see if it works.
+```
+vault login -method=cert -client-cert=/path/to/your/cert.pem \
+    -client-key=/path/to/your/key.pem
+```
+
+```
+Key                            Value
+---                            -----
+token                          ca07764d-cc63-fdb1-5429-b65597f61277
+token_accessor                 94c12ef3-b58e-c79a-a35c-8d734950dfcc
+token_duration                 768h
+token_renewable                true
+token_policies                 [create-token default]
+[etc]
+
+```
+Yay! Try reading the secret:
+
+**`vault read secret/data`**
+```
+Error reading secret/data: Error making API request.
+
+URL: GET https://vault.example.org:8200/v1/secret/data/cipher
+Code: 403. Errors:
+
+* permission denied
+```
+
+As expected, very good. Now get a token that _can_ read the secret.
+
+## get a token for reading the secret
+
+**`vault token create -role=read-secret`**
+
+```
+Key            	Value
+---            	-----
+token          	ef2fb0d1-1644-937f-5326-3c6270abc3ba
+token_accessor 	522c0a9d-7897-a670-e511-650d37ea6d20
+token_duration 	768h0m0s
+token_renewable	true
+token_policies 	[default read-cipher]
+```
+
+_update/note-to-self_: with earlier versions of Vault, the above command _used to_ work in this situation, but not 
+any more. Now you get access denied. I have no clue as to why (feature? bug?), but what does work is to use `curl` and make sure you POST:
+
+ ```
+ curl -s -H X-Vault-Token:ef2fb0d1-1644-937f-5326-3c6270abc3ba -X POST \ 
+ 	$VAULT_ADDR/v1/auth/token/create/read-cipher|jq .auth.client_token
+ 
+ ```
+
+Authenticate with the token we just obtained:
+
+**`vault login ef2fb0d1-1644-937f-5326-3c6270abc3ba`**
+```
+Key            	Value
+---            	-----
+token          	ef2fb0d1-1644-937f-5326-3c6270abc3ba
+token_accessor 	522c0a9d-7897-a670-e511-650d37ea6d20
+token_duration 	768h0m0s
+token_renewable	true
+token_policies 	[default read-cipher]
+```
+and try reading the cipher, so we can encrypt/decrypt things our database:
+
+**`vault read secret/data/cipher`**
+
+```
+Key             	Value
+---             	-----
+refresh_interval	768h0m0s
+cipher          	b862600aaeba7c4ccd74006d2e616083ffb7031a3b088e743080bcf32e90f3b4
+```
+
+Here is the latest draft of an [implementation of this idea](https://github.com/davidmintz/court-interpreters-office/blob/master/module/Vault/src/Service/Vault.php) as part of a Zend Framework application. 
+
+
+

@@ -11,13 +11,6 @@ sudo docker exec -it [container id] sh
 ----------------------------------------------------------------------------------
 or use kuberenetes with the folder that already provided
 ==================================================================================
-
-and export the 
-
-export VAULT_ADDR=http://localhost:8200
-export VAULT_DEV_ROOT_TOKEN_ID="s.kNnuhpHLnA5AgelN5p1j3euX" <-- based on output from vault server -dev
-
-you can verify your server running fine by vault status -address=$VAULT_ADDR
 ----------------------------------------------------------------------------------
 https://learn.hashicorp.com/vault/getting-started-k8s/minikube
 

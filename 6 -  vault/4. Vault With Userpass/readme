@@ -1,0 +1,21 @@
+--------------------------------------------------------------
+Configuration
+--------------------------------------------------------------
+vault auth enable userpass
+
+
+vault write auth/userpass/users/mitchellh \
+    password=foo \
+    policies=admins
+---------------------------------------------------------------
+
+vault login -method=userpass \
+    username=mitchellh \
+    password=foo
+
+curl \
+    --request POST \
+    --data '{"password": "foo"}' \
+    http://127.0.0.1:8200/v1/auth/userpass/login/mitchellh
+
+vault login [generated client token from cli / API]
