@@ -19,7 +19,7 @@ https://learn.hashicorp.com/vault/getting-started-k8s/minikube
 IMPORTANT COMMAND
 ----------------------------------------------------------------------------------
 // Enabling vault UI
-kubectl apply -f service.yml
+kubectl apply -f service.yaml
 
 cd vault-guides/operations/provision-vault/kubernetes/minikube/getting-started
 

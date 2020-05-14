@@ -1,3 +1,5 @@
+kubectl exec -it vault-example-0 sh
+
 ### create read-secret.hcl
 
 ```
@@ -10,7 +12,7 @@ path "secret/data/cipher" {
 
 ```
 path "auth/token/create/read-secret" {
-	policy = "write"
+  policy = "write"
 }
 ```
 ### store policies in vault
@@ -18,7 +20,6 @@ path "auth/token/create/read-secret" {
 logged in as root (or close enough), write the policies
 
 vault policy write read-secret read-secret.hcl
-
 vault policy write create-token create-token.hcl
 
 ### create a named token role... thingy
@@ -27,40 +28,14 @@ vault write auth/token/roles/read-secret allowed_policies=read-secret
 
 _Note to self: find out how to enforce better security on the token/roles thing, i.e., require response-wrapping, a short TTL and modest number of uses (e.g., 2 or 3)._
 
-## configure [auth/cert backend](https://www.vaultproject.io/docs/auth/cert.html)
 
-The `cert` authentication backend has to be enabled (thanks to [saurabhweb](https://github.com/saurabhweb) for reminding us):
+Untuk alasan kemudahan mari kita menggunakan certificate vault itu sendiri :))
 
-vault auth enable cert
+cd /vault/ssl
 
-Prerequisites include obtaining or [creating the certificates](https://jamielinux.com/docs/openssl-certificate-authority/). If you're unfamiliar with this, it will keep you busy for a while, so clear your schedule.
 
-With your certificates ready to go, 
-#-------------------------------------------------------------
-First create a config file to facilitate experimentation; please change the values in the [ dn ] section and eg. call the file cert.conf:
-#-------------------------------------------------------------
-
-[ req ]
-default_bits = 2048
-prompt = no
-encrypt_key = yes
-default_md = sha256
-distinguished_name = dn
-
-[ dn ]
-C = ID
-ST= State or Province Name (full name)
-L = Locality Name (eg, city)
-O = Personal
-emailAddress= you@yourdomain.com
-0.CN= Your Name
-#-------------------------------------------------------------
-Now generate a key and certificate with passphrase using this config file (I will use th3p@ss as the passphrase throughout this text):
-
-openssl req -config cert.conf -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 14
 ```
-vault write auth/cert/certs/web display_name=web policies=create-token \
-	certificate=@cert.pem 
+vault write auth/cert/certs/web display_name=web policies=create-token certificate=@vault-example.pem 
 ```
 Now we have a user (in a manner of speaking) who can log in and create authentication tokens with which the bearer can read the secret. 
 
@@ -68,7 +43,7 @@ Now we have a user (in a manner of speaking) who can log in and create authentic
 
 Let's see if it works.
 ```
-vault login -method=cert -client-cert=cert.pem -client-key=key.pem
+vault login -method=cert -client-cert=vault-example.pem -client-key=vault-example-key.pem
 ```
 
 ```
