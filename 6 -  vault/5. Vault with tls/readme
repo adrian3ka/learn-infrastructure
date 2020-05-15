@@ -1,19 +1,25 @@
 kubectl exec -it vault-example-0 sh
 
+cd /vault
+
 ### create read-secret.hcl
 
 ```
+cat <<EOF > ./read-secret.hcl
 path "secret/data/cipher" {
   policy = "read"
 }
+EOF
 ```
 
 ### create create-token.hcl
 
 ```
+cat <<EOF > ./create-token.hcl
 path "auth/token/create/read-secret" {
   policy = "write"
 }
+EOF
 ```
 ### store policies in vault
 
@@ -31,9 +37,10 @@ _Note to self: find out how to enforce better security on the token/roles thing,
 
 Untuk alasan kemudahan mari kita menggunakan certificate vault itu sendiri :))
 
-cd /vault/ssl
+cd ./ssl
 
 
+vault auth enable cert
 ```
 vault write auth/cert/certs/web display_name=web policies=create-token certificate=@vault-example.pem 
 ```
